@@ -1,5 +1,14 @@
 env: "local"
 storage_path: "./storage.db"
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "password"
+  name: "url_saver"
+  ssl_mode: "disable"
+
 http_server:
-    address: "localhost:9090"
-    timeout: 4s
+  address: "localhost:9090"
+  timeout: 4s

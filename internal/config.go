@@ -1,36 +1,51 @@
 package internal
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"time"
 
-	"github.com/ilyakaznacheev/cleanenv"
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Env          string `yaml:"env" env-default:"local"`
-	Storage_path string `yaml:"storage_path" end-required:"true"`
-	HttpServer
+	Env          string `yaml:"env"`
+	Storage_path string `yaml:"storage_path"`
+	Database
+	HTTP_server
 }
 
-type HttpServer struct {
-	Address string        `yaml:"address" env-default:"local:9090"`
-	Timeout time.Duration `yaml:"timeout" env-default:"4s"`
+type Database struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+	Ssl_mode string `yaml:"ssl_mode"`
 }
 
-func MustLoad() *Config {
-	configPath := os.Getenv("CONFIG_PATH")
-	if configPath == "" {
-		log.Fatal("CONFIG_PATH is not set")
-	}
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("config file does not exist: %s", err)
+type HTTP_server struct {
+	Address string        `yaml:"address"`
+	Timeout time.Duration `yaml:"timeout"`
+}
+
+func Load() (*Config, error) {
+	data, err := os.ReadFile("./config/config.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("can not read config: %w", err)
 	}
 	var cfg Config
-
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatal("Can not read config")
+	if err = yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("can not parsing yaml file: %w", err)
 	}
-	return &cfg
+	return &cfg, nil
+}
+func (c *Config) DatabaseURL() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		c.Database.User,
+		c.Database.Password,
+		c.Database.Host,
+		c.Database.Port,
+		c.Database.Name,
+		c.Database.Ssl_mode)
 }
