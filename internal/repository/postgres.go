@@ -22,7 +22,7 @@ func NewPsqlRepo(db *pgxpool.Pool) *PsqlRepo {
 ##DeleteUser(id int) error
 ##GetAllURL(userID int) ([]models.UserURL, error)
 ##AddURL(userID int, name, url string) error
-DeleteURL(userID int, name string) error
+##DeleteURL(userID int, name string) error
 */
 func (r *PsqlRepo) CreateUser(user *models.User) error {
 	query := `INSERT INTO user (first_name, last_name, created_at)
